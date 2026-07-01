@@ -8,7 +8,7 @@
   <style>
     body {
       margin: 0;
-      font-family: "Tahoma", sans-serif;
+      font-family: Tahoma, sans-serif;
       background: linear-gradient(#dff6e4, #fff7dc);
       min-height: 100vh;
       display: flex;
@@ -19,34 +19,38 @@
     }
 
     .container {
-      background: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.8);
       padding: 25px;
       border-radius: 25px;
       width: 90%;
-      max-width: 420px;
+      max-width: 430px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
     }
 
-    h1 {
-      margin-bottom: 5px;
-      font-size: 28px;
-    }
+    h1 { margin-bottom: 5px; }
 
     .subtitle {
-      margin-bottom: 20px;
       color: #5c7a63;
+      margin-bottom: 15px;
     }
 
     .tree {
       font-size: 85px;
-      margin: 20px 0;
+      margin: 18px 0;
       transition: 0.3s ease;
+    }
+
+    .garden {
+      font-size: 34px;
+      margin: 15px 0;
+      min-height: 45px;
+      line-height: 1.4;
     }
 
     .counter {
       font-size: 22px;
-      margin-bottom: 15px;
       font-weight: bold;
+      margin-bottom: 12px;
     }
 
     select, button {
@@ -75,9 +79,14 @@
       box-shadow: 0 1px 0 #3f7f49;
     }
 
-    .benefit {
+    .reset {
+      background: #d8a85f;
+      box-shadow: 0 5px 0 #a87836;
+    }
+
+    .benefit, .finishHadith {
       background: #fffdf0;
-      margin-top: 20px;
+      margin-top: 18px;
       padding: 15px;
       border-radius: 18px;
       border: 1px solid #eadfae;
@@ -85,16 +94,10 @@
       font-size: 16px;
     }
 
-    .complete {
-      margin-top: 15px;
-      font-size: 18px;
-      color: #3f7f49;
-      font-weight: bold;
-    }
-
-    .reset {
-      background: #d8a85f;
-      box-shadow: 0 5px 0 #a87836;
+    .finishHadith {
+      display: none;
+      background: #f1fff0;
+      border-color: #b9dfb6;
     }
   </style>
 </head>
@@ -102,7 +105,7 @@
 <body>
   <div class="container">
     <h1>🌿 شجرة التسبيح</h1>
-    <p class="subtitle">اسقِ شجرتك بذكر الله</p>
+    <p class="subtitle">كل 30 ذكرًا تنبت شجرة في حديقتك</p>
 
     <div id="tree" class="tree">🟤</div>
 
@@ -121,19 +124,31 @@
     <br />
 
     <button onclick="addDhikr()">اذكر الله</button>
-    <button class="reset" onclick="resetTree()">إعادة</button>
+    <button class="reset" onclick="resetAll()">إعادة</button>
+
+    <div id="garden" class="garden"></div>
 
     <div id="benefit" class="benefit"></div>
 
-    <div id="completeMessage" class="complete"></div>
+    <div id="finishHadith" class="finishHadith"></div>
   </div>
 
   <script>
     let count = 0;
+    let completedTrees = 0;
+    let hadithIndex = 0;
 
     const treeStages = [
-      "🟤", "🌱", "🌿", "🌿", "🌳", "🌳", "🌸", "🌳✨"
+      "🟤",
+      "🌱",
+      "🌿",
+      "🌳",
+      "🌳",
+      "🌲",
+      "🌴"
     ];
+
+    const gardenTrees = ["🌳", "🌲", "🌴", "🌳", "🌲", "🌴"];
 
     const benefits = {
       subhanAllah: `
@@ -153,7 +168,7 @@
 
       allahuAkbar: `
         <strong>🌿 فضل الله أكبر</strong><br>
-        التكبير من أحب الكلام إلى الله، وهو من الباقيات الصالحات.<br>
+        التكبير من الباقيات الصالحات، وهي من خير الأعمال الباقية للعبد.<br>
         قال تعالى: ﴿والباقيات الصالحات خير عند ربك ثوابًا وخير أملًا﴾
       `,
 
@@ -171,21 +186,73 @@
       `
     };
 
+    const finishHadiths = [
+      `
+        <strong>💚 فضل الذكر</strong><br>
+        قال رسول الله ﷺ:<br>
+        «أحب الكلام إلى الله أربع: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر.»<br>
+        <small>رواه مسلم</small>
+      `,
+      `
+        <strong>🌿 ذكر ثقيل في الميزان</strong><br>
+        قال رسول الله ﷺ:<br>
+        «كلمتان خفيفتان على اللسان، ثقيلتان في الميزان، حبيبتان إلى الرحمن:
+        سبحان الله وبحمده، سبحان الله العظيم.»<br>
+        <small>متفق عليه</small>
+      `,
+      `
+        <strong>✨ كنز من كنوز الجنة</strong><br>
+        قال رسول الله ﷺ:<br>
+        «ألا أدلك على كنز من كنوز الجنة؟ لا حول ولا قوة إلا بالله.»<br>
+        <small>متفق عليه</small>
+      `,
+      `
+        <strong>🌱 غرس في الجنة</strong><br>
+        قال رسول الله ﷺ:<br>
+        «لقيت إبراهيم ليلة أسري بي، فقال: يا محمد أقرئ أمتك مني السلام، وأخبرهم أن الجنة طيبة التربة، عذبة الماء، وأنها قيعان، وأن غراسها: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر.»<br>
+        <small>رواه الترمذي</small>
+      `
+    ];
+
     function addDhikr() {
-      if (count < 30) {
-        count++;
+      count++;
+
+      if (count > 30) {
+        completeTree();
+        count = 1;
+      }
+
+      document.getElementById("count").textContent = count;
+      updateTree();
+
+      if (count === 30) {
+        completeTree();
+        count = 0;
         document.getElementById("count").textContent = count;
         updateTree();
       }
+    }
 
-      if (count === 30) {
-        document.getElementById("completeMessage").textContent =
-          "🌳 بارك الله فيك، اكتملت شجرتك اليوم.";
+    function completeTree() {
+      completedTrees++;
+
+      const garden = document.getElementById("garden");
+      const tree = gardenTrees[(completedTrees - 1) % gardenTrees.length];
+      garden.innerHTML += tree;
+
+      const finishBox = document.getElementById("finishHadith");
+      finishBox.style.display = "block";
+      finishBox.innerHTML = finishHadiths[hadithIndex];
+
+      hadithIndex++;
+      if (hadithIndex >= finishHadiths.length) {
+        hadithIndex = 0;
       }
     }
 
     function updateTree() {
       let stageIndex = Math.floor(count / 5);
+
       if (stageIndex >= treeStages.length) {
         stageIndex = treeStages.length - 1;
       }
@@ -198,11 +265,16 @@
       document.getElementById("benefit").innerHTML = benefits[selected];
     }
 
-    function resetTree() {
+    function resetAll() {
       count = 0;
+      completedTrees = 0;
+      hadithIndex = 0;
+
       document.getElementById("count").textContent = count;
       document.getElementById("tree").textContent = "🟤";
-      document.getElementById("completeMessage").textContent = "";
+      document.getElementById("garden").innerHTML = "";
+      document.getElementById("finishHadith").style.display = "none";
+      document.getElementById("finishHadith").innerHTML = "";
     }
 
     updateBenefit();
