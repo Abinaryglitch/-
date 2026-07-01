@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>شجرة التسبيح</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Tahoma", sans-serif;
+      background: linear-gradient(#dff6e4, #fff7dc);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #2f4f3a;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.75);
+      padding: 25px;
+      border-radius: 25px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      margin-bottom: 5px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin-bottom: 20px;
+      color: #5c7a63;
+    }
+
+    .tree {
+      font-size: 85px;
+      margin: 20px 0;
+      transition: 0.3s ease;
+    }
+
+    .counter {
+      font-size: 22px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    select, button {
+      font-size: 18px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: none;
+      margin: 8px;
+    }
+
+    select {
+      background: #f2ffe9;
+      color: #2f4f3a;
+      border: 1px solid #b7d7b9;
+    }
+
+    button {
+      background: #5fa76b;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #3f7f49;
+    }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #3f7f49;
+    }
+
+    .benefit {
+      background: #fffdf0;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 18px;
+      border: 1px solid #eadfae;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    .complete {
+      margin-top: 15px;
+      font-size: 18px;
+      color: #3f7f49;
+      font-weight: bold;
+    }
+
+    .reset {
+      background: #d8a85f;
+      box-shadow: 0 5px 0 #a87836;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🌿 شجرة التسبيح</h1>
+    <p class="subtitle">اسقِ شجرتك بذكر الله</p>
+
+    <div id="tree" class="tree">🟤</div>
+
+    <div class="counter">
+      <span id="count">0</span> / 30
+    </div>
+
+    <select id="dhikrSelect" onchange="updateBenefit()">
+      <option value="subhanAllah">سبحان الله</option>
+      <option value="alhamdulillah">الحمد لله</option>
+      <option value="allahuAkbar">الله أكبر</option>
+      <option value="laIlaha">لا إله إلا الله</option>
+      <option value="astaghfirullah">أستغفر الله</option>
+    </select>
+
+    <br />
+
+    <button onclick="addDhikr()">اذكر الله</button>
+    <button class="reset" onclick="resetTree()">إعادة</button>
+
+    <div id="benefit" class="benefit"></div>
+
+    <div id="completeMessage" class="complete"></div>
+  </div>
+
+  <script>
+    let count = 0;
+
+    const treeStages = [
+      "🟤", "🌱", "🌿", "🌿", "🌳", "🌳", "🌸", "🌳✨"
+    ];
+
+    const benefits = {
+      subhanAllah: `
+        <strong>🌿 فضل سبحان الله</strong><br>
+        قال رسول الله ﷺ:<br>
+        «كلمتان خفيفتان على اللسان، ثقيلتان في الميزان، حبيبتان إلى الرحمن:
+        سبحان الله وبحمده، سبحان الله العظيم.»<br>
+        <small>متفق عليه</small>
+      `,
+
+      alhamdulillah: `
+        <strong>🌿 فضل الحمد لله</strong><br>
+        قال رسول الله ﷺ:<br>
+        «والحمد لله تملأ الميزان.»<br>
+        <small>رواه مسلم</small>
+      `,
+
+      allahuAkbar: `
+        <strong>🌿 فضل الله أكبر</strong><br>
+        التكبير من أحب الكلام إلى الله، وهو من الباقيات الصالحات.<br>
+        قال تعالى: ﴿والباقيات الصالحات خير عند ربك ثوابًا وخير أملًا﴾
+      `,
+
+      laIlaha: `
+        <strong>🌿 فضل لا إله إلا الله</strong><br>
+        قال رسول الله ﷺ:<br>
+        «أفضل الذكر لا إله إلا الله.»<br>
+        <small>رواه الترمذي</small>
+      `,
+
+      astaghfirullah: `
+        <strong>🌿 فضل الاستغفار</strong><br>
+        قال تعالى:<br>
+        ﴿فقلت استغفروا ربكم إنه كان غفارًا ۝ يرسل السماء عليكم مدرارًا﴾
+      `
+    };
+
+    function addDhikr() {
+      if (count < 30) {
+        count++;
+        document.getElementById("count").textContent = count;
+        updateTree();
+      }
+
+      if (count === 30) {
+        document.getElementById("completeMessage").textContent =
+          "🌳 بارك الله فيك، اكتملت شجرتك اليوم.";
+      }
+    }
+
+    function updateTree() {
+      let stageIndex = Math.floor(count / 5);
+      if (stageIndex >= treeStages.length) {
+        stageIndex = treeStages.length - 1;
+      }
+
+      document.getElementById("tree").textContent = treeStages[stageIndex];
+    }
+
+    function updateBenefit() {
+      const selected = document.getElementById("dhikrSelect").value;
+      document.getElementById("benefit").innerHTML = benefits[selected];
+    }
+
+    function resetTree() {
+      count = 0;
+      document.getElementById("count").textContent = count;
+      document.getElementById("tree").textContent = "🟤";
+      document.getElementById("completeMessage").textContent = "";
+    }
+
+    updateBenefit();
+  </script>
+</body>
+</html>
